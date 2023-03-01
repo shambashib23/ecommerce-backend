@@ -1,6 +1,6 @@
 # Introduction
 
-An ecommerce backend implementation mocking Amazon.
+An ecommerce backend implementation!
 
 # Postman Documentation
 
