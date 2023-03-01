@@ -19,12 +19,13 @@ router.post("/signup", async (req, res) => {
         if (!email || !password || !name) {
             return res.status(422).json({
                 message: "Please fill all the fields properly!",
-                status: 422
+                status: 422,
+                success: false
             });
         }
 
         let user = await UserAccount.findOne({ email });
-        
+
         if (user) {
             return res.status(400).json({
                 message: "User already signed up, please proceed to login!",
@@ -47,6 +48,7 @@ router.post("/signup", async (req, res) => {
                 message: "Signed Up Successfully!",
                 token: generateToken(user),
                 status: 200,
+                success: true,
                 ...rest,
             });
         }
@@ -57,8 +59,47 @@ router.post("/signup", async (req, res) => {
         return res.status(500).json({
             message: `Error Signing Up or Logging In --> ${e}`,
             status: 500,
+            success: false
         });
 
+    }
+})
+
+// Getting User Accounts
+router.get("/user-accounts", async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.perPage) || 10;
+
+    try {
+        const userAccounts = await UserAccount
+            .find()
+            .sort({ name: 1 })
+            // .select('name email')
+            .skip((page - 1) * perPage)
+            .limit(perPage);
+
+        if (userAccounts.length === 0) {
+            return res.status(404).json({
+                message: "No user accounts found",
+                status: 404,
+                success: false
+            });
+        }
+        return res.status(200).json(
+            {
+                message: "User Accounts fetched successfully!",
+                status: 200,
+                success: true,
+                userAccounts: userAccounts
+            }
+        );
+
+    } catch (e) {
+        return res.status(500).json({
+            message: `Error retrieving user accounts: ${e.message}`,
+            success: false,
+            status: 500,
+        });
     }
 })
 
@@ -81,7 +122,8 @@ router.post("/login", async (req, res) => {
         if (!user) {
             return res.status(404).json({
                 message: "User not found!",
-                status: 404
+                status: 404,
+                success: false
             });
         }
 
@@ -108,6 +150,7 @@ router.post("/login", async (req, res) => {
             message: "Logged in successfully!",
             token,
             status: 200,
+            success: false,
             ...rest,
         });
 
@@ -115,6 +158,7 @@ router.post("/login", async (req, res) => {
         return res.status(500).json({
             message: `Error logging in --> ${e}`,
             status: 500,
+            success: false
         });
     }
 });
