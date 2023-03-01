@@ -67,6 +67,53 @@ router.post('/upload-products', async (req, res) => {
 
 
 // Displaying All products
+router.get('/product-details', async (req, res) => {
+    try {
+        const products = await ProductDetails.find({}).sort(
+            {
+                "products.productName": 1
+            }
+        );
+
+        if (products.length === 0) {
+            return res.status(404).json(
+                {
+                    message: "No Products found!",
+                    status: 404,
+                    success: false,
+                })
+        }
+
+        let simplifiedProducts = products.map(product => ({
+            productId: product._id,
+            ...product.products,
+        })
+        );
+
+        if (simplifiedProducts.length === 0) {
+            return res.status(404).json(
+                {
+                    message: "No Simplified Products Found!",
+                    status: 404,
+                    success: false,
+                })
+        }
+
+        return res.status(200).json({
+            message: 'Products found and alphabetically sorted!',
+            status: 200,
+            products: simplifiedProducts
+        });
+    } catch (e) {
+        return res.status(500).json({
+            message: `Server error --> ${e}`,
+            status: 500,
+        })
+    }
+
+})
+
+
 
 
 module.exports = router;
