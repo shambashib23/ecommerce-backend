@@ -24,8 +24,14 @@ router.post("/signup", async (req, res) => {
         }
 
         let user = await UserAccount.findOne({ email });
-
-        if (!user) {
+        
+        if (user) {
+            return res.status(400).json({
+                message: "User already signed up, please proceed to login!",
+                status: 400,
+                success: false,
+            });
+        } else {
             user = new UserAccount({ name, email, mobileNumber, password, jwtToken: token });
             await user.save();
 
@@ -43,9 +49,10 @@ router.post("/signup", async (req, res) => {
                 status: 200,
                 ...rest,
             });
-        } else {
-            return res.redirect("/login");
         }
+        // else {
+        //     return res.redirect("/user/login");
+        // }
     } catch (e) {
         return res.status(500).json({
             message: `Error Signing Up or Logging In --> ${e}`,
@@ -61,7 +68,7 @@ router.post("/login", async (req, res) => {
     try {
         const { email, mobileNumber } = req.body;
 
-        if (!email || !mobileNumber) {
+        if ((!email && !mobileNumber) || (email && mobileNumber)) {
             return res.status(422).json({
                 message: "Please enter email or mobile number",
                 status: 422,
@@ -69,7 +76,7 @@ router.post("/login", async (req, res) => {
             });
         }
 
-        const user = await UserAccount.findOne({ email, mobileNumber });
+        const user = email ? await UserAccount.findOne({ email }) : await UserAccount.findOne({ mobileNumber });
 
         if (!user) {
             return res.status(404).json({
@@ -111,6 +118,35 @@ router.post("/login", async (req, res) => {
         });
     }
 });
+
+// Logout Route
+// Logout Route
+router.post("/logout", async (req, res) => {
+    try {
+        if (!req.cookies.jwt) {
+            return res.status(401).json({
+                message: "Unauthenticated user!",
+                status: 401,
+                success: false
+            });
+        }
+
+        res.clearCookie("jwt");
+        res.status(200).json({
+            message: "Logged out successfully!",
+            status: 200,
+            success: true
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json({
+            message: `Error logging out --> ${e}`,
+            status: 500,
+            success: false
+        });
+    }
+});
+
 
 
 module.exports = router;
