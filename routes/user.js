@@ -191,6 +191,34 @@ router.post("/logout", async (req, res) => {
     }
 });
 
+// Delete User Accounts with user id!
+router.delete('/user-accounts/:_id', async (req, res) => {
+    try {
+        const { _id } = req.params;
+        const userAccount = await UserAccount.findOneAndDelete({ _id });
+        if (!userAccount) {
+            return res.status(404).json({
+                message: `User account with userId ${_id} not found`,
+                status: 404,
+                success: false
+            });
+        } else {
+            return res.status(200).json({
+                message: `User account with userId ${_id} deleted successfully!`,
+                status: 200,
+                success: true
+            });
+        }
+    } catch (e) {
+        return res.status(500).json({
+            message: `Error deleting user account: ${e.message}`,
+            status: 500,
+            success: false
+        });
+    }
+
+})
+
 
 
 module.exports = router;
